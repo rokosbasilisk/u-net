@@ -5,7 +5,20 @@ import torch.nn.init as init
 import torch.nn.functional as F
 import numpy
 from torch.nn import Upsample
+from math import floor,ceil
 
+def diff_size(a,b):
+    diffx = a.size()[2]-b.size()[2]
+    diffy = a.size()[3]-b.size()[3]
+    # if number is odd then small,small+1 
+    # else equal-halves 
+    return (diffx,diffy)
+
+def odd_ceil(n):
+    if (n%2==0):
+        return (n//2,n//2)
+    else: 
+        return (floor(n/2),ceil(n/2))
 class Up(nn.Module):
     def __init__(self, channel_in, channel_out):
         super(Up, self).__init__()
@@ -18,10 +31,8 @@ class Up(nn.Module):
         
     def forward(self, x1, x2):
         x1 = self.upsample(x1)
-        difference_in_X = x1.size()[2] - x2.size()[2]
-        difference_in_Y = x1.size()[3] - x2.size()[3]
-        x2 = F.pad(x2, (difference_in_X // 2, int(difference_in_X / 2),
-                        difference_in_Y // 2, int(difference_in_Y / 2)))
+        diff = diff_size(x1,x2)
+        x2 = F.pad(x2, (odd_ceil(diff[0])[0],odd_ceil(diff[0])[1],odd_ceil(diff[1])[0],odd_ceil(diff[1]))[1],)
         x = torch.cat([x2, x1], dim=1)
         x = self.conv(x)
         return x
@@ -50,10 +61,11 @@ class Model(nn.Module):
         )
         self.down1 = Down(8, 16)
         self.down2 = Down(16, 32)
-        self.down3 = Down(32, 32)
-        self.up1 = Up(64, 16)
-        self.up2 = Up(32, 8)
+        self.down3 = Down(32, 64)
+        self.up1 = Up(96, 32)
+        self.up2 = Up(32, 16)
         self.up3 = Up(16, 1)
+
         
     def forward(self, x):
         x1 = self.input_conv(x)

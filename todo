@@ -1,0 +1,5 @@
+resize to 496^2 
+apply unet 
+compute loss(different for PPG)
+backprop
+

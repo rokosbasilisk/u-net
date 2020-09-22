@@ -10,5 +10,8 @@ from PIL import Image
 a = h5.File('f.h5','r')
 a = a['array'][0][:,:,1]
 model = Model()
-c = model(torch.Tensor(resize(a,(512,512))).unsqueeze(0).unsqueeze(0)).squeeze().detach().numpy()
+print(a.shape)
+#c = model(torch.Tensor(resize(a,(496,496))).unsqueeze(0).unsqueeze(0)).squeeze().detach().numpy()
+c = model(torch.Tensor(a).unsqueeze(0).unsqueeze(0))
+
 print(c.shape)
